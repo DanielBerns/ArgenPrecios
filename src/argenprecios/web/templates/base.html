@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}ArgenPrecios{% endblock %}</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://unpkg.com/htmx.org@2.0.3" crossorigin="anonymous"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <strong>ArgenPrecios</strong>
+      <nav style="display:inline; margin-left: 1.5rem;">
+        <a href="/">Panel Nacional</a>
+        <a href="/editor">Editor de Catálogo y Categorías</a>
+        <a href="/baskets">Estudio de Canastas</a>
+        <a href="/docs">OpenAPI</a>
+      </nav>
+    </div>
+    <div>
+      {% if admin %}
+        <span class="badge badge-curated">Admin: {{ admin.username }}</span>
+        <form method="post" action="/logout" style="display:inline; margin-left:0.5rem;">
+          <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+          <button type="submit" class="btn-secondary">Salir</button>
+        </form>
+      {% else %}
+        <a href="/login" class="btn">Ingresar Admin</a>
+      {% endif %}
+    </div>
+  </header>
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

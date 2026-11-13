@@ -1,0 +1,44 @@
+# ArgenPrecios — Example Non-Secret Runtime Configuration
+# Copy to ~/Info/ArgenPrecios/config.yaml and set ARGENPRECIOS_DATABASE_URL & ARGENPRECIOS_SECRET_KEY in env.
+
+workdir: ~/Info/ArgenPrecios
+
+database:
+  pool_size: 10
+  max_overflow: 10
+  statement_timeout_ms: 120000
+  echo_sql: false
+
+sources:
+  # Read-only external producer directories (NEVER modified by ArgenPrecios)
+  sur_en_precios_raw_dir: ~/Info/sur_en_precios/data/raw
+  pipeline_price_scrape_samples_dir: ~/Projects/github/DanielBerns/pipeline_price_scrape/samples
+  hermes_clean_db_path: ~/Projects/github/DanielBerns/hermes_reborn/hermes_clean.db
+
+  # Owned ArgenPrecios directories for fallback downloads, offline imports, and temp extraction
+  fallback_sepa_raw_dir: ~/Info/ArgenPrecios/data/raw/sepa
+  web_scrape_jsonl_dir: ~/Info/ArgenPrecios/data/raw/web_jsonl
+  offline_surveys_dir: ~/Info/ArgenPrecios/data/raw/surveys
+  offline_macro_dir: ~/Info/ArgenPrecios/data/raw/macro
+  temp_extract_dir: ~/Info/ArgenPrecios/data/tmp
+  sepa_portal_url: "https://datos.produccion.gob.ar/dataset/sepa-precios"
+
+spans:
+  max_bridge_gap_days: 2
+  upsert_batch_size: 10000
+  hot_partition_fillfactor: 85
+  precreate_quarters_ahead: 2
+  storage_budget_gb: 500
+  compaction_warning_threshold_gb: 380
+
+analytics:
+  regional_weights_path: ~/Projects/github/DanielBerns/ArgenPrecios/config/regional_weights.yaml
+  government_periods_path: ~/Projects/github/DanielBerns/ArgenPrecios/config/government_periods.yaml
+  base_index_value: 100.0
+
+web:
+  host: "127.0.0.1"
+  port: 8080
+  session_cookie_name: "argenprecios_session"
+  session_max_age_seconds: 43200
+  allow_lan_read_access: true

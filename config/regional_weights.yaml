@@ -1,0 +1,126 @@
+# Canonical 6 INDEC Statistical Regions and 24 ISO 3166-2:AR Jurisdictions
+# Expenditure shares approximate INDEC ENGHo / IPC regional household consumption weights (sum = 1.0000)
+# Population shares approximate Censo Nacional 2022 provincial distribution (sum = 1.0000)
+
+version: "1.0"
+regions:
+  - code: GBA
+    name: Gran Buenos Aires / CABA
+    expenditure_weight: 0.1500
+    provinces:
+      - code: AR-C
+        name: Ciudad Autónoma de Buenos Aires
+        population_share: 0.0680
+        expenditure_share_within_region: 1.0000
+  - code: PAMPEANA
+    name: Pampeana (incl. PBA)
+    expenditure_weight: 0.6330
+    provinces:
+      - code: AR-B
+        name: Buenos Aires
+        population_share: 0.3820
+        expenditure_share_within_region: 0.7900
+      - code: AR-X
+        name: Córdoba
+        population_share: 0.0865
+        expenditure_share_within_region: 0.0950
+      - code: AR-S
+        name: Santa Fe
+        population_share: 0.0775
+        expenditure_share_within_region: 0.0850
+      - code: AR-E
+        name: Entre Ríos
+        population_share: 0.0310
+        expenditure_share_within_region: 0.0220
+      - code: AR-L
+        name: La Pampa
+        population_share: 0.0080
+        expenditure_share_within_region: 0.0080
+  - code: NOA
+    name: Noroeste Argentino (NOA)
+    expenditure_weight: 0.0750
+    provinces:
+      - code: AR-T
+        name: Tucumán
+        population_share: 0.0375
+        expenditure_share_within_region: 0.3150
+      - code: AR-A
+        name: Salta
+        population_share: 0.0315
+        expenditure_share_within_region: 0.2650
+      - code: AR-G
+        name: Santiago del Estero
+        population_share: 0.0230
+        expenditure_share_within_region: 0.1550
+      - code: AR-Y
+        name: Jujuy
+        population_share: 0.0175
+        expenditure_share_within_region: 0.1350
+      - code: AR-K
+        name: Catamarca
+        population_share: 0.0093
+        expenditure_share_within_region: 0.0680
+      - code: AR-F
+        name: La Rioja
+        population_share: 0.0084
+        expenditure_share_within_region: 0.0620
+  - code: NEA
+    name: Noreste Argentino (NEA)
+    expenditure_weight: 0.0450
+    provinces:
+      - code: AR-N
+        name: Misiones
+        population_share: 0.0278
+        expenditure_share_within_region: 0.3200
+      - code: AR-W
+        name: Corrientes
+        population_share: 0.0260
+        expenditure_share_within_region: 0.2950
+      - code: AR-H
+        name: Chaco
+        population_share: 0.0249
+        expenditure_share_within_region: 0.2650
+      - code: AR-P
+        name: Formosa
+        population_share: 0.0132
+        expenditure_share_within_region: 0.1200
+  - code: CUYO
+    name: Cuyo
+    expenditure_weight: 0.0530
+    provinces:
+      - code: AR-M
+        name: Mendoza
+        population_share: 0.0442
+        expenditure_share_within_region: 0.6400
+      - code: AR-J
+        name: San Juan
+        population_share: 0.0179
+        expenditure_share_within_region: 0.2150
+      - code: AR-D
+        name: San Luis
+        population_share: 0.0118
+        expenditure_share_within_region: 0.1450
+  - code: PATAGONIA
+    name: Patagonia
+    expenditure_weight: 0.0440
+    provinces:
+      - code: AR-Q
+        name: Neuquén
+        population_share: 0.0158
+        expenditure_share_within_region: 0.2850
+      - code: AR-R
+        name: Río Negro
+        population_share: 0.0166
+        expenditure_share_within_region: 0.2700
+      - code: AR-U
+        name: Chubut
+        population_share: 0.0131
+        expenditure_share_within_region: 0.2350
+      - code: AR-Z
+        name: Santa Cruz
+        population_share: 0.0073
+        expenditure_share_within_region: 0.1300
+      - code: AR-V
+        name: Tierra del Fuego
+        population_share: 0.0042
+        expenditure_share_within_region: 0.0800

@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Editor de Catálogo y Categorías — ArgenPrecios{% endblock %}
+{% block content %}
+<h1>Búsqueda Facetada y Editor de Catálogo (Jerarquía de 2 Niveles)</h1>
+
+{% if flash %}
+<div class="flash">{{ flash }}</div>
+{% endif %}
+
+<div class="card">
+  <form method="get" action="/editor" style="display:flex; flex-wrap:wrap; gap:0.65rem; align-items:flex-end;">
+    <div>
+      <label>Buscar (EAN, SKU, descripción, marca)<br>
+        <input type="text" name="q" value="{{ q }}" placeholder="Ej: aceite girasol 1.5, leche entera..." style="width:280px;">
+      </label>
+    </div>
+    <div>
+      <label>Departamento (Nivel 1)<br>
+        <select name="department_id">
+          <option value="">Todos</option>
+          {% for d in departments %}
+          <option value="{{ d.id }}" {% if department_id == d.id %}selected{% endif %}>{{ d.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div>
+      <label>Subcategoría (Nivel 2)<br>
+        <select name="subcategory_id">
+          <option value="">Todas</option>
+          {% for s in subcategories %}
+          <option value="{{ s.id }}" {% if subcategory_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <div>
+      <label>Estado Curación<br>
+        <select name="curation_status">
+          <option value="">Todos</option>
+          <option value="manually_curated" {% if curation_status == "manually_curated" %}selected{% endif %}>Curados Manualmente</option>
+          <option value="auto" {% if curation_status == "auto" %}selected{% endif %}>Automáticos</option>
+          <option value="unreviewed" {% if curation_status == "unreviewed" %}selected{% endif %}>Pendientes Revisión</option>
+        </select>
+      </label>
+    </div>
+    <div>
+      <label>Mín. Provincias<br>
+        <input type="number" name="min_active_provinces" value="{{ min_active_provinces }}" min="0" max="24" style="width:80px;">
+      </label>
+    </div>
+    <button type="submit">Filtrar</button>
+  </form>
+</div>
+
+<div id="drawer-container"></div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Resultados ({{ search_page.total_count }} artículos)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>ID / EAN</th>
+          <th>Artículo y Presentación</th>
+          <th>Categoría (2 Niveles)</th>
+          <th>Cobertura Nacional</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in search_page.items %}
+        <tr>
+          <td>
+            <small>#{{ item.article_id }}</small><br>
+            <code>{{ item.ean or "SIN-EAN" }}</code>
+          </td>
+          <td>
+            <strong>{{ item.name }}</strong><br>
+            <small>{{ item.brand_name or "Sin marca" }} · {{ item.package or "S/P" }}</small>
+            {% if item.is_manually_curated %}
+              <span class="badge badge-curated">Bloqueado Manual</span>
+            {% endif %}
+          </td>
+          <td>
+            {{ item.department_name or "—" }} &gt; <strong>{{ item.subcategory_name or "—" }}</strong><br>
+            <small style="color:#64748b;">Variedad: {{ item.generic_variety_slug or "—" }}</small>
+          </td>
+          <td>
+            <span class="badge">{{ item.active_provinces_count }} prov.</span>
+            <small>{{ item.active_chains_count }} cadenas</small>
+            {% if item.latest_ref_price_cents %}
+              <br><small>Ref: ${{ "%.2f"|format(item.latest_ref_price_cents / 100.0) }}</small>
+            {% endif %}
+          </td>
+          <td>
+            <button type="button"
+                    hx-get="/editor/articles/{{ item.article_id }}/drawer"
+                    hx-target="#drawer-container"
+                    hx-swap="innerHTML">
+              Editar
+            </button>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">No se encontraron artículos para los filtros seleccionados.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    {% if admin %}
+    <div class="card">
+      <h3>Gestor de Categorías (2 Niveles)</h3>
+      <form method="post" action="/editor/categories" style="margin-bottom:1rem;">
+        <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+        <div style="margin-bottom:0.4rem;">
+          <input type="text" name="name" placeholder="Nombre categoría" required style="width:100%;">
+        </div>
+        <div style="margin-bottom:0.4rem;">
+          <select name="level" style="width:100%;">
+            <option value="2">Nivel 2: Subcategoría</option>
+            <option value="1">Nivel 1: Departamento</option>
+          </select>
+        </div>
+        <div style="margin-bottom:0.5rem;">
+          <select name="parent_id" style="width:100%;">
+            <option value="">Departamento Padre (para Nivel 2)</option>
+            {% for d in departments %}
+            <option value="{{ d.id }}">{{ d.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit">Crear Categoría</button>
+      </form>
+
+      <h4>Fusionar Subcategorías Duplicadas</h4>
+      <form method="post" action="/editor/categories/merge">
+        <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+        <select name="source_subcategory_id" required style="width:100%; margin-bottom:0.4rem;">
+          <option value="">Origen (se eliminará)...</option>
+          {% for s in subcategories %}
+          <option value="{{ s.id }}">{{ s.name }} (#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <select name="target_subcategory_id" required style="width:100%; margin-bottom:0.5rem;">
+          <option value="">Destino (recibe artículos)...</option>
+          {% for s in subcategories %}
+          <option value="{{ s.id }}">{{ s.name }} (#{{ s.id }})</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn-secondary">Fusionar Subcategorías</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Recategorización en Lote</h3>
+      <form method="post" action="/editor/articles/bulk">
+        <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+        <input type="text" name="article_ids_csv" placeholder="IDs separados por coma (ej: 12,15,19)" required style="width:100%; margin-bottom:0.4rem;">
+        <select name="category_id" style="width:100%; margin-bottom:0.4rem;">
+          <option value="">Nueva Subcategoría...</option>
+          {% for s in subcategories %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+          {% endfor %}
+        </select>
+        <input type="text" name="brand_name" placeholder="Opcional: Nueva Marca" style="width:100%; margin-bottom:0.5rem;">
+        <button type="submit">Aplicar en Lote</button>
+      </form>
+    </div>
+    {% endif %}
+
+    <div class="card">
+      <h3>Historial de Cambios (Undo)</h3>
+      <table>
+        <thead><tr><th>#</th><th>Acción</th><th>Estado</th></tr></thead>
+        <tbody>
+          {% for log in recent_logs %}
+          <tr>
+            <td>#{{ log.id }}</td>
+            <td>{{ log.action }} ({{ log.entity_type }} {{ log.entity_id }})</td>
+            <td>
+              {% if log.undone_at %}
+                <small>Revertido</small>
+              {% elif admin %}
+                <form method="post" action="/editor/logs/{{ log.id }}/undo" style="display:inline;">
+                  <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+                  <button type="submit" class="btn-secondary">Deshacer</button>
+                </form>
+              {% else %}
+                <small>Activo</small>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="3">Sin ediciones manuales aún.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

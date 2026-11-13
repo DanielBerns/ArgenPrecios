@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block title %}{{ basket.name }} — Estudio de Canastas{% endblock %}
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+  <h1>{{ basket.name }}</h1>
+  <div>
+    <a href="/api/v1/baskets/{{ basket.uuid }}/yaml" class="btn btn-secondary" target="_blank">Exportar YAML Extendido</a>
+    <a href="/api/v1/baskets/{{ basket.uuid }}/yaml?strict_sur_en_precios=true" class="btn btn-secondary" target="_blank">Exportar YAML sur_en_precios</a>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Evaluación Multi-Nivel (Ciudad / Provincia / Región INDEC / País)</h2>
+  <form method="get" action="/baskets/{{ basket.uuid }}" style="display:flex; flex-wrap:wrap; gap:0.65rem; align-items:flex-end; margin-bottom:1rem;">
+    <input type="hidden" name="q" value="{{ q }}">
+    <label>Fecha<br><input type="date" name="eval_date" value="{{ eval_date }}"></label>
+    <label>Nivel Geográfico<br>
+      <select name="geo_level">
+        <option value="country" {% if geo_level == "country" %}selected{% endif %}>País (Argentina)</option>
+        <option value="region" {% if geo_level == "region" %}selected{% endif %}>Región Estadística INDEC</option>
+        <option value="province" {% if geo_level == "province" %}selected{% endif %}>Provincia (AR-*)</option>
+        <option value="city" {% if geo_level == "city" %}selected{% endif %}>Ciudad / Localidad</option>
+      </select>
+    </label>
+    <label>Código Geo (AR, PATAGONIA, AR-U, etc.)<br>
+      <input type="text" name="geo_code" value="{{ geo_code }}" style="width:140px;">
+    </label>
+    <label>Ponderación<br>
+      <select name="weighting">
+        <option value="expenditure" {% if weighting == "expenditure" %}selected{% endif %}>Gasto Hogares (ENGHo)</option>
+        <option value="population" {% if weighting == "population" %}selected{% endif %}>Población (Censo)</option>
+        <option value="unweighted" {% if weighting == "unweighted" %}selected{% endif %}>Equiponderado</option>
+      </select>
+    </label>
+    <button type="submit">Evaluar Canasta</button>
+  </form>
+
+  {% if evaluation %}
+  <div class="kpi-row">
+    <div class="card">
+      <div>Costo Referencia (GeoMean)</div>
+      <div class="kpi-value">
+        {{ "$%.2f"|format(evaluation.geo_mean_reference_total_cents / 100.0) if evaluation.geo_mean_reference_total_cents is not none else "N/D" }}
+      </div>
+      <small>{{ evaluation.geo_name }} ({{ evaluation.geo_code }})</small>
+    </div>
+    <div class="card">
+      <div>Óptimo Multi-Sucursal (Mínimo)</div>
+      <div class="kpi-value">
+        {{ "$%.2f"|format(evaluation.min_total_cents / 100.0) if evaluation.min_total_cents is not none else "N/D" }}
+      </div>
+      <small>Mejor sucursal única: {{ "$%.2f"|format(evaluation.best_single_store_cents / 100.0) if evaluation.best_single_store_cents is not none else "N/D" }}</small>
+    </div>
+    <div class="card">
+      <div>Cobertura de Ítems</div>
+      <div class="kpi-value">{{ "%.1f%%"|format(evaluation.coverage_ratio * 100.0) }}</div>
+      <small>{{ evaluation.matched_items_count }} / {{ evaluation.total_items_count }} ítems hallados</small>
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Composición de la Canasta ({{ basket.items|length }} ítems)</h2>
+    <table>
+      <thead>
+        <tr><th>EAN</th><th>Artículo</th><th>Cant. × Fracción</th><th>Respaldo 8 Años</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for it in basket.items %}
+        <tr>
+          <td><code>{{ it.ean or "—" }}</code></td>
+          <td><strong>{{ it.name }}</strong><br><small>{{ it.brand or "" }}</small></td>
+          <td>{{ it.quantity }} × ({{ it.numerator }}/{{ it.denominator }})</td>
+          <td><small>Var: {{ it.fallback_variety_slug or "—" }}</small></td>
+          <td>
+            {% if admin %}
+            <form method="post" action="/baskets/{{ basket.uuid }}/items/{{ loop.index0 }}/remove">
+              <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+              <button type="submit" class="btn-secondary">Quitar</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5">Busque artículos a la derecha para agregarlos a la canasta.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Buscar Artículos para Agregar</h3>
+    <form method="get" action="/baskets/{{ basket.uuid }}" style="display:flex; gap:0.5rem; margin-bottom:0.85rem;">
+      <input type="hidden" name="eval_date" value="{{ eval_date }}">
+      <input type="hidden" name="geo_level" value="{{ geo_level }}">
+      <input type="hidden" name="geo_code" value="{{ geo_code }}">
+      <input type="text" name="q" value="{{ q }}" placeholder="Buscar leche, fideos, arroz..." style="flex:1;">
+      <button type="submit">Buscar</button>
+    </form>
+
+    {% if search_results %}
+      {% for hit in search_results.items %}
+      <div style="border-bottom:1px solid #e2e8f0; padding:0.55rem 0;">
+        <div><strong>{{ hit.name }}</strong> <span class="badge">{{ hit.active_provinces_count }} prov.</span></div>
+        <small><code>{{ hit.ean or "SIN-EAN" }}</code> · {{ hit.subcategory_name or "" }}</small>
+        {% if admin %}
+        <form method="post" action="/baskets/{{ basket.uuid }}/items/add" style="display:flex; gap:0.35rem; margin-top:0.35rem; flex-wrap:wrap;">
+          <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+          <input type="hidden" name="article_id" value="{{ hit.article_id }}">
+          <input type="hidden" name="fallback_variety_slug" value="{{ hit.generic_variety_slug or '' }}">
+          <input type="number" name="quantity" value="1" min="1" style="width:58px;" title="Cantidad">
+          <input type="number" name="numerator" value="1" min="1" style="width:52px;" title="Numerador">
+          <input type="number" name="denominator" value="1" min="1" style="width:52px;" title="Denominador">
+          <button type="submit">+ Agregar</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

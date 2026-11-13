@@ -1,0 +1,23 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:16-alpine
+    container_name: argenprecios-postgres
+    restart: unless-stopped
+    shm_size: 256mb
+    environment:
+      POSTGRES_USER: ${ARGENPRECIOS_PG_USER:-argenprecios}
+      POSTGRES_PASSWORD: ${ARGENPRECIOS_PG_PASSWORD:-argenprecios_dev}
+      POSTGRES_DB: ${ARGENPRECIOS_PG_DB:-argenprecios}
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "127.0.0.1:${ARGENPRECIOS_PG_PORT:-5433}:5432"
+    volumes:
+      - argenprecios_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  argenprecios_pgdata:

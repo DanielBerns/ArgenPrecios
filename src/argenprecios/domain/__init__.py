@@ -1,0 +1,73 @@
+"""Pure domain layer for ArgenPrecios."""
+
+from __future__ import annotations
+
+from argenprecios.domain.enums import (
+    CanonicalUnit,
+    CurationStatus,
+    GeoLevel,
+    PosChannel,
+    PromoMechanism,
+    SourceChannel,
+    WeightingScheme,
+)
+from argenprecios.domain.models import (
+    ArticleSearchHit,
+    BasketDefinition,
+    BasketGeoEvaluation,
+    BasketItemSpec,
+    EvaluatedBasketItem,
+    FacetBucket,
+    IncomingPricePoint,
+    IngestionRunResult,
+    NewSpanRecord,
+    OpenSpanState,
+    PeriodComparisonMetrics,
+    PriceIndexPoint,
+    RawPriceObservation,
+    SearchFilter,
+    SearchPageResult,
+    SpanDeleteOp,
+    SpanExtensionOp,
+    SpanKey,
+    SpanTransitionBatch,
+    VarietyRollupCell,
+)
+from argenprecios.domain.ports import (
+    CatalogSearchPort,
+    ObservationSourcePort,
+    SpanRepositoryPort,
+)
+
+__all__ = [
+    "ArticleSearchHit",
+    "BasketDefinition",
+    "BasketGeoEvaluation",
+    "BasketItemSpec",
+    "CanonicalUnit",
+    "CatalogSearchPort",
+    "CurationStatus",
+    "EvaluatedBasketItem",
+    "FacetBucket",
+    "GeoLevel",
+    "IncomingPricePoint",
+    "IngestionRunResult",
+    "NewSpanRecord",
+    "ObservationSourcePort",
+    "OpenSpanState",
+    "PeriodComparisonMetrics",
+    "PosChannel",
+    "PriceIndexPoint",
+    "PromoMechanism",
+    "RawPriceObservation",
+    "SearchFilter",
+    "SearchPageResult",
+    "SourceChannel",
+    "SpanDeleteOp",
+    "SpanExtensionOp",
+    "SpanKey",
+    "SpanRepositoryPort",
+    "SpanTransitionBatch",
+    "VarietyRollupCell",
+    "WeightingScheme",
+]

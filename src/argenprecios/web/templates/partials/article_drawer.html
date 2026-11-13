@@ -1,0 +1,54 @@
+<div class="card" style="border: 2px solid #2563eb;">
+  <h3>Editar Artículo #{{ article.id }} ({{ article.ean or "SIN-EAN" }})</h3>
+  {% if not admin %}
+    <p>Debe <a href="/login?next_url=/editor">iniciar sesión como Administrador</a> para guardar cambios.</p>
+  {% else %}
+    <form method="post" action="/editor/articles/{{ article.id }}">
+      <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:0.75rem; margin-bottom:0.85rem;">
+        <label>Nombre completo<br>
+          <input type="text" name="name" value="{{ article.name }}" required style="width:100%;">
+        </label>
+        <label>Descripción limpia<br>
+          <input type="text" name="clean_description" value="{{ article.clean_description }}" required style="width:100%;">
+        </label>
+        <label>Marca<br>
+          <input type="text" name="brand_name" value="{{ article.brand_name or '' }}" style="width:100%;">
+        </label>
+        <label>Cantidad envase<br>
+          <input type="text" name="package_amount" value="{{ article.package_amount if article.package_amount is not none else '' }}" style="width:100%;">
+        </label>
+        <label>Unidad (kg, g, l, ml, u)<br>
+          <input type="text" name="package_unit" value="{{ article.package_unit or '' }}" style="width:100%;">
+        </label>
+        <label>Subcategoría (Nivel 2)<br>
+          <select name="category_id" style="width:100%;">
+            {% for s in subcategories %}
+            <option value="{{ s.id }}" {% if article.category_id == s.id %}selected{% endif %}>
+              {{ departments.get(s.parent_id, "Depto") }} &gt; {{ s.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Variedad Genérica Homogénea<br>
+          <select name="generic_variety_id" style="width:100%;">
+            <option value="">Sin asignar</option>
+            {% for v in varieties %}
+            <option value="{{ v.id }}" {% if article.generic_variety_id == v.id %}selected{% endif %}>
+              {{ v.name }} ({{ v.canonical_unit }})
+            </option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Etiquetas (separadas por coma)<br>
+          <input type="text" name="tags_csv" value="{{ tags_csv }}" style="width:100%;">
+        </label>
+      </div>
+      <small style="display:block; margin-bottom:0.65rem; color:#475569;">
+        Factor de conversión unitario actual: <strong>{{ article.unit_conversion_factor or "1.0" }}</strong>.
+        Al guardar se activará <code>is_manually_curated = True</code> para impedir que SEPA/Hermes sobrescriban su corrección.
+      </small>
+      <button type="submit">Guardar y Bloquear Curación</button>
+    </form>
+  {% endif %}
+</div>

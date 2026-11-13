@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Panel Nacional de Inflación — ArgenPrecios{% endblock %}
+{% block content %}
+<h1>Almacén Histórico Nacional de Precios (24 Jurisdicciones)</h1>
+
+<div class="kpi-row">
+  <div class="card">
+    <div>Uso de Almacenamiento PostgreSQL</div>
+    <div class="kpi-value">{{ size_gb }} GB / {{ budget_gb }} GB</div>
+    <small>Presupuesto proyectado a 8+ años (&lt; 500 GB)</small>
+  </div>
+  <div class="card">
+    <div>Artículos en Catálogo</div>
+    <div class="kpi-value">{{ articles_total }}</div>
+    <small>Curados manualmente (bloqueados): {{ curated_total }}</small>
+  </div>
+  <div class="card">
+    <div>Puntos de Venta Relevados</div>
+    <div class="kpi-value">{{ pos_total }}</div>
+    <small>SEPA + Web Scraping + Relevamientos Offline</small>
+  </div>
+</div>
+
+<div class="card">
+  <h2>Comparación de Inflación entre Períodos Presidenciales</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Administración</th>
+        <th>Ventana</th>
+        <th>Meses Obs.</th>
+        <th>Inflación Acumulada</th>
+        <th>CMGR Mensual</th>
+        <th>Anualizada</th>
+        <th>Poder Adq. RIPTE</th>
+        <th>Brecha Promo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in period_comparisons %}
+      <tr>
+        <td><strong>{{ p.administration_label }}</strong></td>
+        <td>{{ p.start_date }} → {{ p.end_date }}</td>
+        <td>{{ "%.1f"|format(p.months_observed) }}</td>
+        <td>{{ "%.2f%%"|format(p.cumulative_inflation_pct) if p.cumulative_inflation_pct is not none else "N/D" }}</td>
+        <td>{{ "%.2f%%"|format(p.cmgr_pct) if p.cmgr_pct is not none else "N/D" }}</td>
+        <td>{{ "%.2f%%"|format(p.annualized_inflation_pct) if p.annualized_inflation_pct is not none else "N/D" }}</td>
+        <td>{{ "%+.2f%%"|format(p.ripte_real_purchasing_power_change_pct) if p.ripte_real_purchasing_power_change_pct is not none else "N/D" }}</td>
+        <td>{{ "%.2f%%"|format(p.avg_promo_gap_pct) if p.avg_promo_gap_pct is not none else "N/D" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Serie Nacional Ponderada (Jevons → Laspeyres)</h2>
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Índice</th><th>Var. Período</th><th>Variedades</th></tr>
+      </thead>
+      <tbody>
+        {% for row in cpi_rows %}
+        <tr>
+          <td>{{ row.period_date }}</td>
+          <td><strong>{{ "%.2f"|format(row.index_value) }}</strong></td>
+          <td>{{ "%+.2f%%"|format(row.period_pct_change) if row.period_pct_change is not none else "Base" }}</td>
+          <td>{{ row.overlapping_varieties_count }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Ejecute <code>argenprecios rollup</code> para poblar la serie.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Cobertura en las 24 Provincias (ISO AR-*)</h2>
+    <div style="max-height: 360px; overflow-y: auto;">
+      <table>
+        <thead><tr><th>Código</th><th>Jurisdicción</th><th>Sucursales</th></tr></thead>
+        <tbody>
+          {% for code, pname, cnt in province_coverage %}
+          <tr>
+            <td><span class="badge">{{ code }}</span></td>
+            <td>{{ pname }}</td>
+            <td>{{ cnt }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

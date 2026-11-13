@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Estudio de Canastas — ArgenPrecios{% endblock %}
+{% block content %}
+<h1>Estudio Nacional de Canastas de Artículos</h1>
+
+<div class="grid-2">
+  <div class="card">
+    <h2>Canastas Guardadas</h2>
+    <table>
+      <thead><tr><th>Nombre</th><th>UUID</th><th>Ítems</th><th>Exportar</th></tr></thead>
+      <tbody>
+        {% for b in baskets %}
+        <tr>
+          <td><a href="/baskets/{{ b.uuid }}"><strong>{{ b.name }}</strong></a></td>
+          <td><code>{{ b.uuid }}</code></td>
+          <td>{{ b.items|length }}</td>
+          <td><a href="/api/v1/baskets/{{ b.uuid }}/yaml" target="_blank">YAML</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">Aún no hay canastas cargadas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div>
+    {% if admin %}
+    <div class="card">
+      <h3>Crear Nueva Canasta</h3>
+      <form method="post" action="/baskets/create">
+        <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+        <input type="text" name="name" placeholder="Ej: Canasta Básica Nacional" required style="width:100%; margin-bottom:0.5rem;">
+        <button type="submit">Crear Canasta</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>Importar YAML (Compatible con sur_en_precios)</h3>
+      <form method="post" action="/baskets/import-yaml">
+        <input type="hidden" name="csrf_token" value="{{ admin.csrf_token }}">
+        <textarea name="yaml_text" rows="8" placeholder="Pegue el contenido de canasta_basica_alimentos.yaml..." required style="width:100%; margin-bottom:0.5rem;"></textarea>
+        <button type="submit">Importar YAML</button>
+      </form>
+    </div>
+    {% else %}
+    <div class="card">
+      <p><a href="/login?next_url=/baskets">Inicie sesión como Administrador</a> para crear o importar canastas.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Ingreso Administrador — ArgenPrecios{% endblock %}
+{% block content %}
+<div class="card" style="max-width: 440px; margin: 3rem auto;">
+  <h2>Ingreso de Administrador</h2>
+  <p style="color:#475569; font-size:0.9rem;">Requerido para editar categorías de 2 niveles, curar artículos y guardar canastas.</p>
+  {% if error %}
+    <div style="background:#fee2e2; color:#991b1b; padding:0.65rem; border-radius:6px; margin-bottom:1rem;">{{ error }}</div>
+  {% endif %}
+  <form method="post" action="/login">
+    <input type="hidden" name="next_url" value="{{ next_url }}">
+    <div style="margin-bottom:0.85rem;">
+      <label>Usuario<br><input type="text" name="username" required style="width:100%;"></label>
+    </div>
+    <div style="margin-bottom:1rem;">
+      <label>Contraseña<br><input type="password" name="password" required style="width:100%;"></label>
+    </div>
+    <button type="submit" style="width:100%;">Iniciar Sesión</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,126 @@
+[build-system]
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "argenprecios"
+version = "0.1.0"
+description = "Country-level multi-source historical price warehouse, catalog editor, basket studio, and cross-government CPI engine for Argentina"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [
+    { name = "Daniel Berns" },
+]
+dependencies = [
+    "aiohttp>=3.11.0",
+    "alembic>=1.14.0",
+    "bcrypt>=4.2.0",
+    "fastapi>=0.115.0",
+    "hermes-reborn",
+    "itsdangerous>=2.2.0",
+    "jinja2>=3.1.4",
+    "openpyxl>=3.1.5",
+    "psycopg[binary]>=3.2.0",
+    "pyarrow>=18.0.0",
+    "pydantic>=2.10.0",
+    "python-json-logger>=3.2.0",
+    "python-multipart>=0.0.18",
+    "pyyaml>=6.0.2",
+    "sqlalchemy>=2.0.36",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[project.scripts]
+argenprecios = "argenprecios.cli.main:main"
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.0",
+    "mypy>=1.13.0",
+    "pytest>=8.3.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "ruff>=0.8.0",
+    "types-pyyaml>=6.0.12",
+]
+
+[tool.uv.sources]
+hermes-reborn = { path = "../hermes_reborn", editable = false }
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/argenprecios"]
+
+[tool.alembic]
+script_location = "%(here)s/src/argenprecios/adapters/db/migrations"
+prepend_sys_path = ["%(here)s/src"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E",
+    "W",
+    "F",
+    "I",
+    "B",
+    "SIM",
+    "UP",
+    "PTH",
+    "RUF",
+    "T20",
+]
+ignore = [
+    "E501",
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["T20"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Form",
+    "fastapi.Query",
+]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+packages = ["argenprecios"]
+plugins = ["pydantic.mypy"]
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[[tool.mypy.overrides]]
+module = [
+    "hermes_reborn.*",
+    "pyarrow.*",
+    "openpyxl.*",
+    "pythonjsonlogger.*",
+    "bcrypt.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra -q"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["src/argenprecios"]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
